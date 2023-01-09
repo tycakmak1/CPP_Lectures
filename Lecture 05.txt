@@ -1,0 +1,143 @@
+===========================================LECTURE 05===========================================
+================================================================================================
+
+reference semantics
+
+on language level reference and pointer are the same thing, only difference is on the syntax level.
+
+L value reference
+R value reference
+	used for
+		move semantics
+		perfect forwarding (generic programming)
+forwarding reference (universal reference)
+
+
+how to use reference and pointer on arrays?
+
+int a[5]{0, 1, 2, 3, 4};
+int& r1 = a[0];//here r1 is a reference to the first element of a
+int (&r2)[5] = a;//here r2 is a reference to the array itself
+same goes for pointers
+int* p1 = a;//here p1 points to the first element of a
+int (*p2)[5] = &a;//here p2 points to the array itself
+
+
+int a = 5;
+int& r_a = a;//data type of r_a is int& but the type of expression of "r_a" is int
+
+why do we use L value reference
+
+for the %99 of the time
+	- to pass an object to a function as call by reference
+	- bir fonksiyonun kendisini çaðýran koda bir nesnenin kendisini göndermesi
+
+
+void func(T* x);		//	setter-mutator
+void func(const T* x);	//	getter-accessor
+
+
+					POINTERS								REFERENCES
+initialization		necessary								not necessary
+					pointer to pointer exists				reference to reference does not exist(there is something called reference collapsing)
+					array with pointer elements exists		array with reference elements does not exist
+					pointer to function exists				reference to function exists
+					can be nullptr							no null reference
+					can change the object it points to		can not change the object it's bound
+
+
+int& r1;//L value reference
+int&& r2;//R value reference
+
+int x = 10;
+int& r1 = x;			VALID
+int& r2 = 5;			INVALID
+int&& r3 = x;			INVALID
+int&& r4 = 5;			VALID
+const int& r5 = 10;		VALID
+const int&& r6 = x;		VALID but in practice const int&& is not a tool used
+
+================================================================================================
+type deduction
+###REMARK###
+	type deduction happens in compile time, it has nothing to do with run time
+###REMARK###
+
+variables defined with auto keyword must be initialized.
+
+###REMARK###
+	type deduction happens for auto keyword, not the type of variable. meaning compiler determines what's written instead of auto keyword.
+	e.g.
+		auto x = 5;		//here compiler reads this line as if it was int x = 5		here auto is replaced with int by the compiler
+		auto p1 = &x;	//here compiler reads this line as if it was int* p = &x	here auto is replaced with int* by the compiler
+		auto* p2 = &x;	//here compiler reads this line as if it was int* p2 = &x	here auto is replaced with int by the compiler
+
+		const int y = 5;
+		auto x2 = y;	//here const is lost, so compiler reads this line as if it was int x2 = y, to keep the const it must be changed to const auto x2 = y
+
+		int x = 10;
+		int& r = x;
+		auto y = r;		//here & is lost, so the compiler reads this as if it was int y = r not int& y = r;
+
+########
+		###REMARK###
+			if pointers are used in auto initializations, low level const is not lost
+			e.g.
+				const int x[] = {0, 1, 2, 3, 4};
+				auto y = x;		//here compiler reads this line as if it was const int* y = x, so auto = int*
+
+				or
+
+				const int x = 5;
+				auto y = &x;	//here compiler reads this line as if it was const int* y = &x, so auto = const int*
+
+				or
+
+				const int x = 5;
+				auto* y = &x;	//here compiler reads this line as if it was const int* y = &x, so auto = const int
+
+				or
+
+				const int x = 5;
+				auto& y = x;	//here compiler reads this line as if it was const int& y = x, so auto = const int
+
+				or
+
+				const int x[5]{};
+				auto y = &x;	//here compiler reads this line as if it was const int(*pd)[5] = &x, so auto = const int(*)[5]
+
+				or
+
+				const int x[5]{};
+				auto& y = x;	//here compiler reads this line as if it was const(&y)[5] = x, so auto = int[5]
+
+				or
+
+				auto& y = "batuhan";	//here compiler reads this line as if it was const char(&y)[8] = "batuhan", so auto  = const char[8]
+				all in these examples, y is a const
+
+		BUT
+			top level const is lost
+			e.g.
+				int* const ptr{};
+				auto p = ptr;		//here compiler reads this line as if it was int* p = ptr, so auto = int*
+		###REMARK###
+########
+
+
+###############	REFERENCE COLLAPSING ###############
+
+T&		&		T&
+T&		&&		T&
+T&&		&		T&
+T&&		&&		T&&
+e.g
+	using lref = int&;
+	using rref = int&&;
+	int x = 10;
+	auto&& p = x;		//here compiler reads this line as if it was int& && p = x, so auto = int&. by reference collapsing rules int& && becomes int&
+	
+	lref& y = x;		//int& & by reference collapsing becomes int&
+	lref&& y = x;		//int& && by reference collapsing becomes int&
+	rref& y = x;		//int&& & by reference collapsing becomes int&
+	rref&& z = z;		//int&& && by reference collapsing becomes int&&

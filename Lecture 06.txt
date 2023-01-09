@@ -1,0 +1,209 @@
+===========================================LECTURE 06===========================================
+================================================================================================
+
+universal reference(auto&&)
+	auto =
+		if rhs is L val. exp then, T&
+		if rhs is R val. exp then, T
+	e.g.
+	int x = 10;
+	auto&& r1 = x;		//here compiler reads this line as if it was int& r1 = x, auto = int&
+	auto&& r2 = 10;		//here compiler reads this line as if it was int&& r2 = 10, auto = int
+
+
+================================================================================================
+decltype(x)
+works in two different ways
+
+1-)	if the operand is an identifier,
+		it gives out the type of the operand
+		e.g.
+			int x = 5;
+			decltpye(x) y = 10;				//here compiler reads this line as if it was int y = 10, decltype(x) = int
+
+			or
+
+			int x = 5;
+			using mytype = decltype(x);		//here compiler reads this line as if it was using mytype = int;, decltype(x) = int
+
+2-)	if the operand is an expression,
+		2.1-) if it's an PR val. expr. then T
+		2.2-) if it's an L  val. expr. then T&
+		2.3-) if it's an X  val. expr. then T&&
+		e.g.
+			int x = 5;
+			decltype(x++) y;				//here compiler reads this line as if it was int y;
+			decltype(++x) z;				//here compiler reads this line as if it was int& z; which would be a syntax error because references must be initialized
+
+e.g. for both ways
+	int a[5]{};
+	decltype(a) b;						//here a is an identifier, so decltype(a) = int[5]
+	decltype(a[0]) c = a[1];			//here a[0] is an L val. expr., so decltype(a[0]) = int&
+
+###REMARK###
+	operand of the decltype is unevaluated context. operand of the sizeof is also unevaluated.
+	e.g.
+		int x = 10;
+		decltype(x++) y = 5;
+		decltype(++x) z = y;
+
+		std::cout << x << "\n";			//outputs 10, because operand of declytpe is unevaluated
+
+
+================================================================================================
+default arguments of functions
+
+###REMARK###
+	int foo(int x);		//here x is a parameter of the function foo
+
+	foo(5);				//here 5 is the argument
+###REMARK###
+
+int func(int, int, int = 10);
+
+func(x, y, z);			//==> func(x, y, z);
+func(x, y);				//==> func(x, y, 10);
+
+###REMARK###
+	int func(int, int = 5, int);	//syntax error. after using a default argument, every following argument must also have a dafult argument
+
+	but there is an exception to this
+		int func(int, int, int = 10);
+		int func(int, int = 5, int);	//here since the 3rd parameter already has a default value, redeclaring it as int func(int, int = 5, int = 10); would be a syntax error.
+			so callýng func like func(1) would mean func(1, 5, 10)
+###REMARK###
+
+int f1(int x = 0);
+void f2(int y = f1());
+
+f2();		//==> f2(f1()) ==> f2(f1(0))
+
+###REMARK###
+	int func(int, int, int = 10);
+	int func(int, int, int = 10);
+		is a syntax error because it's a redefinition, but
+
+		int func(int, int, int);
+		int func(int, int, int = 10);
+			is not a redefinition, so it;s not a syntax error.
+
+		also
+
+		int func(int, int, int = 10);
+		int func(int, int, int);
+			is true.
+		
+		these two styles are specially useful if you are using a function from a header file that does not belong to you. instead of changing the function in the header file,
+		you can redeclare it in your own program.
+
+		void func(int x, int y = x);	//is a syntax error
+================================================================================================
+enumerators
+
+there are two different enum types in C++ enum and scoped enum(usually called enum class by developers but correct name is scoped enum, but the Class keyword is used in it's definition)
+
+old enum
+e.g.
+	enum Color{red, green, blue};
+
+	or
+
+	enum Color : unsigned char{red, green, blue};
+
+	underlying type is determined by the compiler. in C it has to be int. in C++ it is dependent on int, it defaults to int but if int is not enough then it is chosen accordingly by the compiler.
+	can also be specified implicitly in C++.
+
+	problems of the old enum
+		- old enum can not be used as incomplete type, because underlying_type is dependent on the compiler
+		- underlying_type can not be specified by developer
+		- implicit type casting from arithmetic types to enum type does not exist but it does from enum to arithmetic types. THIS IS A HUGE PROBLEM. ONE OF THE MAIN REASONS THAT SCOPED ENUM EXISTS.
+		- implicit type casting between two different enum's also does not exist.
+		- THEY DO NOT HAVE SCOPE. THIS IS ONE OF THE MAIN REASONS THAT SCOPED ENUM EXISTS. When defined globally, components of different enum's with same names would clash(called name clashing).
+		  e.g.
+		  enum traffic_light{red, yellow, green};
+		  enum screen_color{gray, white, red};
+		  to prevent name clashing developers would define the components more uniquely
+		  e.g.
+			enum traffic_ligt{traffic_light_red, traffic_light_yellow, traffic_light_green};
+			enum screen_color{screen_color_gray, screen_color_white, screen_color_yellow};
+			if not done like this, red in traffic_light and red in screen_color would clash.
+		- can have specified underlying_type
+		  e.g.
+			enum Color : unsigned char;
+
+			or
+
+			enum Color : unsigned int {gray, black, magenta};
+
+
+scoped enum
+e.g.
+	enum class Color{
+		white,
+		gray,
+		black,
+		green
+	};
+	
+	or
+
+	enum class Color : unsigned char{
+		white,
+		gray,
+		black,
+		green
+	};
+
+	- it's underlying type defaults to int, but can be specified by declaration or definition.
+	- to access it's elements, scope resolution operator(::) must be used.
+	  e.g.
+		Color temp = white;			//is a syntax error because white is not defined
+		Color temp = Color::white;	//is the proper way
+		auto c1 = gray;				//is still a syntax error, same reason
+		auto c1 = Color::gray;		//is the proper way
+		
+		This prevents the name clashing problems, which was the aim.
+
+	- implicit type casting from scoped enum to arithmetic type does not exist. explicit does.
+	e.g.
+		enum class Color{
+			red,
+			green,
+			blue
+		};
+		 Color mycolor{Color::red};
+		 int x = mycolor;						//is a syntax error because implicit type casting does not exist
+		 int x = static_cast<int>(mycolor);		//is correct, because type cast is done explicitly
+
+	###REMARK###
+		using enum declaration can grant access to the elements of a scoped enum without scope resolution operator.
+		e.g.
+			enum class Color{
+				red,
+				green.
+				blue
+			};
+			using enum Color;					//by using this, in the scope of this declaration, you can access the elements of Color without using "scope resolution operator"
+			auto c1 = red;
+			Color c2 = green;
+			
+			IMPORTANT
+				if you use two "using enum" declarations in the same scope, you would create an error if those two scoped enums have a name clash. compiler checks this on the compile time.
+
+			you can also use this way
+				enum class Color{
+					red,
+					green,
+					blue
+				};
+				using Color::red;
+				Color c1 = red;					//is valid because of the "using Color::red";
+				Color c2 = blue;				//is invalid because blue is undefined in this scope. it has to be Color c2 = Color::blue;
+
+				but
+
+				using Color::red, Color::blue;
+				Color c1 = red;					//is valid because of the "using Color::red"
+				Color c2 = blue;				//is valid because of the "using Color::blue"
+
+	###REMARK###

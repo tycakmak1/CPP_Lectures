@@ -1,0 +1,299 @@
+===========================================LECTURE 13===========================================
+================================================================================================
+
+move members
+
+
+a class can be open to copy and open to move.
+a class can be closed to copy and open to move.
+a class can be closed to copy and closed to move.
+
+move members must leave the object they steal the resource from, in a valid state.
+an object it's resource is stolen, can be re-used in an assignment to it.
+
+
+###REMARK###
+	resource of a const object can not be stolen(rules of the language prohibits this), nor you should try to steal it.
+###REMARK###
+
+###REMARK###
+	std::move() is a const qualified function. so when the argument of move is a const, it also returns const.
+	e.g.
+		
+		class myclass{
+		public:
+			myclass() = default;
+			myclass(const myclass&){
+				cout << "copy ctor\n";
+			}
+			myclass(myclass&&){
+				cout << "move ctor\n";
+			}
+		};
+
+		int main(){
+			myclass x;
+			myclass y = std::move(x);		// ==> this line will call the move ctor
+
+			const myclass z;
+			myclass t = std::move(z);		// ==> this line will call the copy ctor
+
+			return 0;
+		}
+###REMARK###
+
+###REMARK###
+	
+		CHECK THE special member functions.jgp WHILE DEFINING SPECIAL MEMBER FUNCTIONS.
+
+		to summarize;
+
+			if if any of the destructor / copy ctor / copy assignment is declared, then move members are not declared.
+			there are no scenarios dtor does not exist.
+			default ctor either defaulted or not declared.
+			if either of the move members is declared copy members are deleted.
+
+###REMARK###
+
+###REMARK###
+	ctors can not be called by their names.
+	e.g.
+		class myclass;
+
+		myclass x;
+		myclass* ptr = &x;
+		x.myclass();			// ==> always a syntax error
+		ptr->myclasS();			// ==> always a syntax error
+	dtor can be called by it's name, but must not.
+	e.g.
+		class myclass;
+
+		myclass x;
+		myclass* ptr = &x;
+		x.~myclass();			// ==> can be done, but must not
+		ptr->~myclass();		// ==> can be done, but must not
+###REMARK###
+
+###REMARK####
+
+	WHEN DEFINING COPY OR MOVE ASSIGNMENT, ALWAYS CHECK FOR SELF ASSIGNMENT, TO PREVENT DANGLING POINTERS.
+
+###REMARK###
+
+
+
+================================================================================================
+delegating constructor
+
+is the ctor that calls another ctor.
+e.g.
+
+class myclass{
+public:
+	myclass(int x) : myclass(x, 0, 0) {}
+	myclass(int x, int y, int z) : x_{ x } , x_{ y }, z_{ z } {}
+private:
+	int x_, y_, z_;
+};
+
+================================================================================================
+temporary objects
+
+life of a temporary object ends after the enclosing expression that contains the expression that creates the temporary object.
+e.g.
+	class Myclass{
+	public:
+		Myclass(){
+			cout << "default ctor this = " << this << '\n';
+		}
+		Myclass(int a, int b){
+			cout << "a = " << a << " b = " << b << " this = " << this << '\n';
+		}
+		~Myclass(){
+			cout << "destructor this = " << this << '\n';
+		}
+		void foo(){
+			cout << "Myclass foo() this = " << this << '\n';
+		}
+	private:
+		int x{}, y{};
+
+	};
+
+	int main(){
+		cout << "main starts here\n";
+		Myclass{}.foo();					// ==> yes this is valid and a pr value expression, this line creates a temporary object
+		cout << "main continues\n";
+
+		return 0;
+	}
+
+	will have the following output;
+		main starts here
+		default ctor this = //address goes here
+		Myclass foo() this = //same as before address goes here
+		destructor this = //same as before address goes here
+		main continues
+	but, if you bind it to a r value expression like,
+		int main(){
+			cout << "main starts here\n";
+			Myclass&& x = Myclass{ 3, 5 };
+
+			return 0;
+		}
+	would have the following output;
+		main starts here
+		a = 3 b = 5 this = //address
+		main continues
+		destructor this = //same address as before
+
+		this time we have two different addresses, one for the temp object, and another for the x in Myclass::bar().
+
+		so binding a temp object to an r val. expr. extends the life of that temp object, till the end of that references scope. this is called life extension
+
+
+================================================================================================
+reference qualifiers
+
+###REMARK###
+	non-static member functions can be called with L and R val. expr. class instances.
+	e.g.
+		
+		class myclass{
+		public:
+			void foo();
+			void bar();
+		};
+
+		int main(){
+			myclass mx;
+			mx.foo();			// ==> L val. expr. valid
+			mx.bar();			// ==> L val. expr. valid
+
+			myclass{}.foo();	// ==> R val. expr. valid
+			myclass{}.bar();	// ==> R val. expr. valid
+
+			return 0;
+		}
+	BUT there are such cases;
+		a-) we want to disable the calling of functions for R val. expr. class instances
+		b-) we want to disable the calling of functions for R val. expr. and L val. expr. class instances
+		we want to define different implementations.
+###REMARK###
+
+	void Myclass::foo()&{			// ==> here foo()& is an L value reference qualifier
+		cout << "Myclass foo()& this = " << this << '\n';
+	}
+
+	void Myclass::bar()&&{			// ==> here bar()&& is an R value reference qualifier
+		cout << "Myclass bar()&& this = " << this << '\n';
+	}
+
+	so calling these functions in the following style would be;
+
+		Myclass x;
+		
+		x.foo();				// ==> valid
+		x.bar();				// ==> invalid
+		Myclass{}.bar();		// ==> valid
+		Myclass{}.foo();		// ==> invalid
+		std::move(x).foo();		// ==> invalid
+		std::move(x).bar();		// ==> valid
+
+	member functions can be overloaded with reference qualifiers.
+
+	but why do we need reference qualifiers?
+
+		to prevent problems like assigning a value to an r value expr
+		e.g.
+			
+			Myclass x;
+
+			Myclass{} = x;		// ==> this is not a syntax error. but also illogical. to turn this into a syntax error, we define assignment operator of the class as L val ref qualified
+
+			//like this
+			Myclass& Myclass::operator=(const Myclass&)& = default;
+
+	###REMARK###
+		
+		if one of the overloads of a member function is reference qualified, then all overloads of that function must be reference qualified.
+
+================================================================================================
+conversion constructors
+
+class myclass{
+public:
+	myclass();		// ==> default ctor
+	myclass(T);		// ==> also ctor but, ctors with one parameter are usually called conversion constructors. because it creates an implicit conversion from T to myclass.
+};
+
+myclass x;
+x = 5;				// implicit conversion
+
+###REMARK###
+	this type of conversion is called user-defined conversion.
+	compiler can perform an implicit conversion in two ways
+		1-) standard conversion + user-defined conversion
+		2-) user-defined conversion + standard conversion
+		both are implicit conversions. but compiler can not perform an implicit conversion in the form of
+			user-defined conversion + user-defined conversion.
+		e.g.
+
+		class A{
+		};
+		class B{
+		public:
+			B(A);
+		};
+		class C{
+		public:
+			C(B);
+		};
+
+		A ax;
+		B bx = ax;						// ==> valid, compiler performs user-defined conversion implicitly
+		C cx = bx;						// ==> valid, compiler performs user-defined conversion implicitly
+		C cx1 = ax;						// ==> invalid, because this would need user-defined conversion + user-defined conversion. to perform this we can use explicit cast
+		C cx1 = static_cast<B>(ax);		// ==> valid, compiler performs a standard conversion
+
+		to prevent the compiler performing an implicit conversion, we use "explicit" keyword in ctor definition. means that constructor does not allow implicit conversion,
+		only explicit conversion.
+		e.g.
+			class myclass{
+			public:
+				myclass();
+				explicit myclasS(T);
+			};
+
+			some important rules about explicit;
+				1-) if it's not defined in class definition(inline definition) explicit keyword does not have to be in the definition
+				e.g.
+					class myclass{
+					public:
+						myclass();
+						explicit myclass(T);
+					};
+
+					myclass::myclass(T x){}					// ==> this is the correct way
+					explicit myclass::myclass(T x){}		// ==> this is the wrong way
+				2-) if copy initialization requires an implicit conversion, explicit conversion ctor will cause a syntax error
+				e.g.
+					class myclass{
+					public:
+						myclass();
+						explicit myclass(int);
+					};
+
+					int main(){
+						myclass m = 10;						// ==> this is a syntax error
+					}
+				3-) explicit functions are omitted from viable functions list in function overloading resolution.
+				4-) conversion ctors can have more than 1 parameters, but in practice this is rare.
+	###REMARK###
+
+
+================================================================================================
+copy elision		// ==> not performing the copying, or escaping from the copying.
+	sometimes referred to as copy elimination
+
+with the C++17, some of the copy elision scenarios are switched from optional(usually called optimization) to mandatory.

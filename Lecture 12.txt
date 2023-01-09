@@ -1,0 +1,137 @@
+===========================================LECTURE 12===========================================
+================================================================================================
+
+default ctor that has been defaulted by the compiler is the
+	- non-static
+	- public
+	- inline
+	function of the class.
+
+
+###REMARK###
+	if defaulting of a special member function by a compiler breaks a rule of the language, then instead of a syntax error, compiler deletes that function.
+
+	why would there be a syntax error?
+		- a member is unable to default initialize
+		- calling of a non-existing function
+		- calling of a private function
+		- calling of a deleted function
+
+	e.g.
+		
+		class myclass{
+		public:
+
+		private:
+			const int x;
+		};
+
+		here default ctor is deleted, because const int can not be default initialized. note that, this class definition is not a syntax error but, creating an instance of myclass with default initialization
+		would cause a syntax error, because myclass does not have a default ctor.
+
+================================================================================================
+copy ctor
+
+when a class instance initiated with the value of another instance of the same class, copy constructor is called.
+e.g.
+	student batu;
+	student taha{batu};			// ==> calls copy constructor
+	or
+	student yasin(batu);		// ==> calls copy constructor
+	or
+	student cakmak = batu;		// ==> calls copy constructor
+
+default copy ctor that defaulted by the compiler is the
+	- non-static
+	- public
+	- inline
+	function of the class.
+
+###REMARK###
+	if the special member function that's been defined by the compiler is working for you, let the compiler define it. this is called rule of zero. so when should we write the copy ctor?
+	when the class has a pointer/reference variable in it. because copy ctor copies the values of the members, so copying the value of a pointer/reference results with that pointer/reference member
+	having the same value with the original instance. so they point to the same thing, and when changing values in that location, they both get changed.this type of copying called
+		shallow copy - memberwise copy.
+	instead of this we do deep copy, which is creating a new instance and copying the values from the original instance.
+	e.g.
+		class String{
+		public:
+			String() = default;
+			String(const char* p) : mlen{ std::strlen(p) }, mp{ static_cast<char*>(std::malloc(mlen + 1)) }{		// ==> this is shallow copy
+				if(!mp)
+					throw std::runtime_error{ "can not allocate memory" };
+				std::strcpy(mp, p);											// the difference between two copy ctors is in this line, notice the second argument.
+			}
+			String(const String& other) : mlen{ other.mlen }, mp{ static_cast<char*>(std::malloc(mlen + 1)) }{		// ==> this is deep copy
+				if(!mp)
+					throw std::runtime_error{ "can not allocate memory" };
+				std::strcpy(mp, other.mp);									// the difference between two copy ctors is in this line, notice the second argument.
+			}
+			~String(){
+				std::free(mp);
+			}
+			void print()const{
+				cout << "[" << mp << "]\n";
+			}
+			std::size_t length()const{
+				return mlen;
+			}
+		private:
+			std::size_t mlen{};
+			char* mp{};
+		};
+
+		void func(String s){
+			cout << "func called\n";
+			s.print();
+		}
+
+		int main(){
+			String str{ "hello world!" };
+
+			str.print();
+			auto len = str.length();
+
+			cout << "len = " << len << '\n';
+
+			func(str);
+			cout << "back to main\n";
+			str.print();
+			cout << str.length();
+		}
+
+###REMARK###
+
+so, deep copy is necessary when a class contains a handle(pointer or reference). bu there are classes that have pointers in them, but for those classes deep copy ctor 
+is not necessary to define explicitly. because those classes already have built-in deep copy ctor.
+
+three status for copy ctor
+	1-) compiler defined(rule of zero)
+	2-) explicitly defined
+	3-) deleted. this is to prevent copying.
+
+when defining an explicit dtor, instead of letting the compiler to define a dtor, there should also be an explicit copy ctor.
+in old C++, these three functions were related to each other,
+	destructor
+	copy ctor
+	copy assignment
+	that's why these three were usually called big 3. in modern C++, with the addition of move ctor and move assignment, they are referred to as big 5.
+	the reason it is called as, if you define one of them then you should also define the others.
+
+================================================================================================
+copy assignment
+
+unlike copy ctor, in copy assignment, there are no instances being created. it works on already existing instances.
+e.g.
+	myclass x{};
+	myclass y{};
+
+	y = x;			// ==> copy assignment
+
+it must be names as operator=.
+
+if copy assignment operator is implicitly defined by the compiler, then it is
+	- non-static
+	- public
+	- inline
+		function of the class.

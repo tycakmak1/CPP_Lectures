@@ -1,0 +1,99 @@
+===========================================LECTURE 04===========================================
+================================================================================================
+
+type conversion
+
+	implicit type conversion
+		x + y
+		
+		if ranks are different but signs are same, operations will be performed on higher rank
+		if ranks and signs are both different, operation will be performed on higher unsigned rank
+			e.g.
+				unsigned long
+				int
+					operation will be performed on unsigned long
+			for the opposite scenario
+			e.g.
+				long
+				unsigned int
+					if the higher rank can store all the values in lower unsigned rank, then operation will be performed on the higher rank
+						else it will be performed on unsigned higher rank
+		if ranks are the same but one of them is signed and the other one is unsigned, operation will be performed on unsigned
+			e.g.
+				unsigned long
+				long
+					operation will be performed on unsigned long
+	
+control statements
+	if
+	for
+	while
+	do-while
+	switch
+	goto
+	return
+	break
+	continue
+
+maximal munch
+	compiler tries to produce longest tokens
+		e.g.
+			x+++y would mean x++ + y because, x is an identifier so it becomes a token,  does not make sense so it checks the validity of x++, since it is ++ becomes the second toke
+
+
+after declaration of an array, a[5] and int 5[a] are the same thing, because [] is a pointer operator
+
+pointer
+
+object pointers		-> address of objects, variables
+	T x;
+		T * is the type of address of T data type.
+		e.g.
+			int *
+			double *
+		pointers can be L value or R value
+			(pointer variable name can be used for L value type pointer)
+			int* p; //pointer to int or p points to 'insert variable name here'
+			every pointer no matter the data type it points to, has the same size, but function pointer and object pointer does not have to be the same size
+
+		###REMARK###
+			A pointer can be valid or invalid. Validity does not mean syntax.
+			e.g. invalid pointer
+				int* ptr;//is an invalid pointer because it has garbage(indetermined) value
+				if the object that the pointer points to is dead, than the pointer is invalid
+				###REMARK###
+					int* p = nullptr;//is a valid pointer
+			e.g. valid pointer
+				the end of and array
+	pointer operators
+		& address of
+			-it's operand has to be an L value expr
+			-&x is an R value expr
+		* dereferencing / indirection
+			-yields the value of the object that the pointer points to
+
+
+function pointers	-> address of functions
+
+======================================================================
+functions with pointer parameters
+pointers and const keyword
+address returning functions
+string literals
+
+type alias declarations(typedef declarations)
+
+pointer arithmetic
+pointer arrays
+pointer to pointer
+void pointers
+	void* and void** difference
+function pointers
+	function pointer arrays
+	functions returning function pointers
+	call back
+multi-dimensional arrays
+	functions taking multi-dimensional arrays as parameter
+dynamic memory management
+
+array decay / function to pointer conversion

@@ -1,0 +1,74 @@
+===========================================LECTURE 08===========================================
+================================================================================================
+
+exceptions to the overload resolution(function scope resolution)
+
+	1-)
+		void f(bool);
+		void f(void*);
+	
+		int x{};
+		f(&x);		// ==> ambiguity error is expected since both overloads require conversion BUT compiler chooses f(void*)
+	2-)
+		void func(const int&);
+		void func(int&&);
+
+		f(10);		// ==> ambiguity error is expected since both overloads are viable BUT func(int&&) will be called
+	3-)
+		void f(int&);
+		void f(const int&);
+		void f(int&&);
+
+		int x{10};
+		const int cx{45};
+		f(10);		// ==> calls f(int&&)
+		f(x);		// ==> calls f(int&)
+		f(cx);		// ==> calls f(const int&)
+	4-)
+		void bar(int&){
+			cout << 3;
+		}
+		void bar(int&&){
+			cout << 4;
+		}
+		void foo(int& x){
+			cout << 1;
+			bar(x);
+		}
+		void foo(int&& x){
+			cout << 2;
+			bar(x);
+		}
+		foo(10);	// ==> THIS IS IMPORTANT. foo(10) calls foo(int&&) but bar(x) calls bar(int&) because x is an L value expression
+###REMARK###
+	const keyword with typealiases create top level const.
+	e.g.
+		using iptr = int*;
+		int x{};
+		const iptr cpx = &x;			//here const iptr means int* const cpx = &x;
+		same also goes for C
+			e.g.
+				typedef int* iptr;
+				int x{};
+				const iptr cpx = &x;	//here const iptr means int* const cpx = &x;
+###REMARK###
+
+
+ODR		==>		One Definition Rule
+	Only one definition of any variable, function, class type, enumeration type, concept or template is allowed in any one translation unit(some of these
+	may have multiple declarations, but only one definition is allowed).
+
+		###REMARK###
+			Declartion
+				void foo(int);
+
+				or
+
+				void foo(int x);
+			Definition
+				void foo(int x){
+					//code goes here
+					return;
+				}
+		###REMARK###
+	Programs in violation of ODR are ill-formed.

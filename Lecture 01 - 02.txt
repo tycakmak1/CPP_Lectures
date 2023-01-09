@@ -1,0 +1,128 @@
+bunlarý c de ayrýntýlý anlatýyor. bak
+
+sentaks hatasý syntax error
+ill-formed / well-formed
+invalid code - valid code
+illegal code - legal code
+
+undefined behavior (ub)
+	unspecified behavior
+		implementation defined
+
+C name shadowing, in C++ name shadowing does not exist
+
+in C
+int func() and func() (without an explicit data type declaration) is the same, but in C++ this does not happen
+
+
+türleye ve tür dönüþümlerine iliþkin farklýlýklar
+=================================================
+C'de kullanýlan _Bool aslýnda signed int veridir
+C++'da bool gerçek bir logic veri tipidir
+bool  boyutu 1 byte
+
+UYARI	en tehlikeli durum, yanlýþlýkla yazýlan kodun ayný zamanda eçerli olmasýdýr
+this is in C
+struct data{
+	int a,b;
+};
+
+struct data i;
+
+
+typedef data{
+	int a,b;
+}data;
+
+data i;
+in C++ you do not need to use typedef. in C++ structures are also classes.
+In C structures do not have access control(public, private, etc.), in C++ they do.
+typedef also exists in C++, but there is an alternative to this, the "using" keyword.
+in C constant variables do not have to be initialized, but in C++ they have to.
+in C "const int x", prohibits from using it in declaration like int a[x]
+in C++ constant variable can be used in declaration like int a[x]
+
+in C++ there is const, constexpr, consteval
+internal linkage and external linkage is important
+
+in C char constants are 4 bytes, but in C++(they are named character literals) they are 1 byte
+in C "akif" is char[5], 5 because it ends with '\0', but in C++ it is const char[5]
+array decay - array to pointr conversion : meaning array names acts as pointers, except in sizeof() in C
+unevaluated context, in C only happens in sizeof(), but in C++ there are 7-8 instances
+
+for:
+int a[10]
+a has the type int(*)
+&a has the type int(*)[10]
+C++ also uses pointers but, compared to their usage in C it is much more sparse.because C++ uses reference semantics, and we use smart_pointer's
+to control dynamic sizes. in some cases instead of using pointers, we use containers like vector<int>::iterator.
+in C char str[4] = "anil" is perfectly legal but, does not have NULL at the end. in C++ it is a syntax error, must be char str[5] = "anil"
+
+statement deyim
+
+
+expression ifade
+x
+x + 5
+f(x)
+++x
+x++
+f(x) > g(x)
+x * x + y * y + z * z, in here x * x is named as subexpression (altifade)
+in C++ every expresison has a data type and a value category(L value expression, R value expression), knowing the value category is
+critically important. L value expresisons point to an object
+int *p = &x; here *p is an L value expression
+
+===============================
+C DE TEKRAR EDÝLMESÝ GEREKENLER
+tür dönüþümü
+integral promotion
+comma operator
+===============================
+
+some R value expression in C, are L value expression in C++
+				C		C++
+++x				R		L
+--x				R		L
+assignment		R		L
+comma(,)		R		(duruma göre)L
+ternary			R		(duruma göre)L
+
+C++
+
+primary value categories
+PR value	(pure R value)
+L value
+X value		(ex-pired value)
+
+combine value categories
+PR		U(birleþim)		X		R	value
+L		U(birleþim)		X		GL	value
+
+
+reference semantics
+default argument's
+type deduction
+	auto type deduction
+	decltype type deduction
+	scoped enums
+	type-cast operators
+
+function overloading
+====================
+classes
+
+references are alternatives to pointers on a language level
+
+call by reference:	function works on the object directly
+call by value:		functions takes a copy of the object and works on that copy
+in C to use call by reference we use pointers, in C++ we can use references
+
+reference categories
+L value reference	(left side reference)
+R value reference	(right side reference)
+forwarding reference(universal reference)
+
+int&  r = x;	L value reference
+int&& r = x;	R value reference
+auto && r = 10; universal reference

@@ -1,0 +1,165 @@
+===========================================LECTURE 07===========================================
+================================================================================================
+
+type casting
+
+###REMARK###
+	TYPE CASTING DOES NOT CHANGE THE VARIABLES ACTUAL TYPE BUT CREATES A TEMPORARY OBJECT IN THAT TYPE TO USE.
+###REMARK###
+
+	in C there is only one way to do implicit type cast. (target type)expression. in C++ there are several, all differ from each other.
+1-) old way
+
+		(target type)expression
+		e.g.
+			double x = 5.2;
+			int y = (int)x;
+
+			or
+
+			(double)i1/i2;		//here only i1 is treated as double
+
+		###REMARK###
+			EVERY TYPE CAST IS A POTENTIAL ERROR. MUST BE VERY CAREFUL IN EVERY WAY.
+		###REMARK###
+2-) new ways
+	2.1-) static_cast<target_type>(operand)
+	2.2-) const_cast<target_type>(operand)						###REMARK### ==> const_cast only takes pointers and references as it's operand.
+	2.3-) reinterpret_cast<target_type>(operand)
+	2.4-) dynamic_cast<target_type>(operand)								 ==> This one is about run-time polymorphism and will be studied under the class topic
+
+	e.g. for static_cast<target_type>(operand)
+		int x = 10;
+		int y = 3;
+
+		double dval = x / y;	//this will cause data loss, to prevent that type cast must be used.
+		double dval = static_cast<double>(x) / y;
+		int ival = static_cast<int>(dval);
+
+		enum class Pos{on, off, hold};
+		Pos mypos = Pos::off;
+
+		ival = mypos;			//this will cause an error, because implicit cast from scoped enums to arithmetic types does not exist
+		ival = static_cast<int>(mypos)
+	
+	
+	e.g. for const_cast<target_type>(operand)
+		
+		char* mystrchr(const char* p, int c){
+			while(*p){
+				if(*p == c){
+					return p;	//this is error because function's return type is char* but p is const char*, to overcome this we use const_cast
+					return const_cast<char*>(p);
+				}
+				++P;
+			}
+			if(c == '\0')
+				return const_cast<char*>(p;
+			return nullptr;
+		}
+	
+	
+	e.g. for reinterpret_cast<target_type>(operand)
+		double dval = 3.33;
+		char* ptr = &dval;		//this is a syntax error because dval is double and ptr is char*
+		char* ptr = reinterpret_cast<char*>(&dval);
+
+================================================================================================
+function overloading(compile time mechanism, it has nothing to do with the runtime)
+
+three necessities for function overloading
+1-) names must be the same
+2-) scopes must be the same
+3-) function signatures must be different (function signature: number of parameters and the type of parameters of a function)
+
+###REMARK###
+	int func(int);
+	int func(const int);
+		is not a function overloard. parameter with a constant keyword does not cause different signatures, this is function redeclaration. this is not a syntax error because it's just declaration,
+		but it would be for;
+			int func(int a){
+				return 1;
+			}
+			int func(const int a){
+				return 1;
+			}
+	for
+		int func(int*);
+		int func(const int*);
+			it is totally different, this is one of the most used function overloading scenarios. it is frequently called "const overloading"(not an official term).
+	for
+		void f(double* const p);
+		void f(double* p);
+			is not a function overload. BECAUSE TOP LEVEL CONST OF A FUNCTION PARAMETER DOES NOT CAUSE SIGNATURE DIFFERENCE. BUT LOW LEVEL CONST CAUSES OVERLOADING, AND THIS TYPE OF OVERLOADING
+			IS CALLED CONST OVERLOADING(not an official term)
+
+	for
+		void f(char);
+		void f(signed char);
+		void f(unsigned char);
+			in here we have 3 overloads, because char, signed char and unsigned char are distinct types.
+	for
+		int f(int);
+		int f(signed int);
+		int f(unsigned int);
+			in here we have 2 overloads because int and signed int are not distinct types.
+	for
+		void f(int32_t);
+		void f(int);
+			is implementation defined, because just from these two lines we dont now if int32_t and int are same or not.
+	for
+		int f(int*);
+		int f(int&);
+			is also a function overload.
+	for
+		void foo(int p[]);
+		void foo(int p[20]);
+		void foo(int* p);
+			only one overload here, they are all the same.
+	for
+		void foo(int(int));
+		void foo(int(*)(int));
+			is not an overload because, int(int) is a function type, int(*)(int) is a pointer to function. they seem different but, function to pointer decay happens, no overload. this is redeclaration
+
+	for
+		void foo(int (*)[5]);
+		void foo(int (*)[6]);
+		void foo(int (*)[7]);
+		void foo(int (*)[8]);
+			here we have four overloads.
+###REMARK###
+
+function overload resolution(usually referred to as overload resolution)
+
+it happens in three steps
+
+1-) candidate functions
+	in this step, compiler finds all the functions with the same name in the call. these functions are called candidate functions
+2-) viable functions
+	compiler checks the candidate functions if they would be viable to use if they were alone(only that functions exists).
+	if there are no viable functions, then no match error
+	if there are more than one viable function to call but no criteria for the compiler to choose between the viable functions, then ambiguity error
+	e.g. for no match
+		int f(int);
+
+		f();	// ==> function call, no match error
+	e.g. for ambiguity
+		int f(int);
+		int f(double);
+
+		f(2U);	// ==> function call, ambiguity error, because there is criteria for the compiler to choose between f(int) and f(double), because they both are viable for 2U
+3-) 
+	preference order
+		1-) standard conversion
+			1.1-) exact match(wins against promotion)
+					argument type and parameter type are the same
+					there are exceptions that considered as exact match
+						- const conversion(conversion from T* to const T*)
+						- array decay
+						- function to pointer conversion
+			1.2-) promotion(loses against exact match but wins against conversion)
+					- integral promotion(conversion of short, char, signed char, unsigned char, bool to int)
+					- float promotion(conversion of float to double)
+			1.3-) (only)conversion(loses against promotion but wins against user-defined conversion)
+		2-) user-defined conversion(loses against standar conversion but wins against variadic conversion)
+		3-) variadic conversion(last choice)

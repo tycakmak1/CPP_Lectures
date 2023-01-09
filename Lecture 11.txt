@@ -1,0 +1,168 @@
+===========================================LECTURE 11===========================================
+================================================================================================
+
+const member functions(continued)
+
+mutable keyword
+	class Myclass{
+	public:
+		void print()const{
+			//..
+			m_debug++;			// since print is a const member func, it can't change the value of m_debug, to get around that we define m_degub as mutable int m_debug. this let's const member funcs
+								to change the values of the instance. this also let's us change those values by using "." (dot operator).
+		}
+	private:
+		int dd, mm, yy;
+		mutable int m_debug;
+	}
+
+================================================================================================
+
+constructor(ctor) and destructor(dtor)
+	constructors
+		their names must be the same with the class name.
+		they do not have a return type.
+		they are non-static member functions of the class, meaning they can and do use "this pointer".
+		can not be a static member function.
+		can not be a const  member function.
+		can not be a global function.
+		can be overloaded.
+		does not have to be a public member function of the class, can be private or protected.
+		"dot operator" or "arrow operator" can not be used to call a constructor.
+	
+	destructors
+		their names must be the same with the class name, but with one addition "~".
+		they do not have a return type.
+		they are non-static member functions of the class, meaning they can and do use "this pointer".
+		can not be a static member function.
+		can not be a const  member function.
+		can not be a global function.
+		can not be overloaded.
+		can not have a parameter.
+		does not have to be a public member function of the class, can be private or protected.
+		"dot operator" or "arrow operator" can be used to call a constructor.
+		
+
+	default constructor
+		for a ctor to be a default ctor, either it must not have any parameters, or every parameter of that ctor must have default values.
+
+================================================================================================
+special member functions
+	definitions of these functions can be written by the compiler under certain circumstances.
+	default etmek
+		can happen in two different ways
+			1-) according to the language's rules, it can (implicitly)declare these functions and can define them.
+			2-) we can declare them and expect compiler to write their code.
+	there are 6 special functions
+		default ctor
+		destructor
+		copy ctor
+		move ctor			(added with C++11)
+		copy assignment		
+		move assignment		(added with C++11)
+
+		copy members
+			copy ctor
+			copy assignment
+
+		move members
+			move ctor
+			move assignment
+###REMARK###
+	global objects are constructed before main functions and destroyed after main function. if there are more than one global objects, they are constructed by their declaration order.
+	the first object constructed is the last object destroyed.
+	order of construction of global object instances from different source files is compiler dependent.
+	static local object instances will not be constructed if the function is not called. therefore will not be destroyed either. they will be constructed when the function is called and destroyed
+	after main ends.
+		###REMARK### about static local object instances
+			they will not be constructed every time the function called.
+		###REMARK###
+	non-static local variables are constructed when their scope begins, and are destroyed at the end of their scope.
+###REMARK###
+
+initializing references to object instance does not call the constructor.
+e.g.
+	class yasin{
+		yasin();
+		~yasin();
+	}
+
+	yasin x;				// will call the constructor
+	yasin& r1_x = x;		// will not call the constructor
+	yasin& r2_x = x;		// will not call the constructor
+	yasin& r3_x = x;		// will not call the constructor
+
+construction of the elements of a class array is ordered by the array order. first element will be constructed first but destroyed last, and last element will be constructed last but destroyed first.
+
+	yasin x1;				// default initialization
+	yasin x2{};				// value initialization
+	yasin x3();				// function declaration, not a class object instantiation
+
+###REMARK###
+	a class does not have to have a default constructor
+
+
+automatic storage duration objects
+	located in stack
+
+static storage duration objects
+
+dynamic storage duration objects
+	they are located in free store(in C free store is called heap)
+
+
+
+IMPORTANT
+special member functions can have one of the following states
+	
+	1-) not declared
+
+	2-) user declared
+			2.1-) user declared - defined
+			2.2-) user declared - defaulted
+			2.3-) user declared - deleted
+
+	3-) implicitly declared		// ==> defined by compiler
+			3.1-) defaulted
+			3.2-) deleted
+
+
+
+initialization e.g.
+	class myclass{
+	public:
+		myclass(int x){
+			cout << "Myclass(int x) x = " << x << '\n;
+		}
+	};
+
+	int main(){
+		myclass x1(10);		// direct initialization
+		myclass x2{ 10 };	// direct list(brace) initialization
+		myclass x3 = 92;	// copy initialization
+
+		return 0;
+	}
+
+
+================================================================================================
+ctor initializer list(member initializer list) ==> not actually an initializer
+
+	1-) can only be used for ctors.
+	2-) a ctor initializes the non-static data members of the instance it's going to construct.
+
+first choice must always be the ctor initializer list.
+
+	e.g. for ctor init list
+
+	class myclass{
+	public:
+		myclass() : x{ 5 }, y{ 6 }, z(7){		// this here is the ctor initializer list
+			//..
+		}
+	private:
+		int x, y, z;
+	}
+
+	3-) construction order of data members of a class, is always in the order of definition in the class.
+	4-) even if the ctor does not do anything in it's block, the block must exist.

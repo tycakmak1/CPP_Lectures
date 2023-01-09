@@ -1,0 +1,145 @@
+===========================================LECTURE 10===========================================
+================================================================================================
+
+//Myclass.h
+#ifndef MYCLASS_H
+#define MYCLASS_H
+class Myclass{
+public:
+	void foo();
+};
+#endif
+
+
+//Myclass.cpp
+#include "Myclass.h"
+
+public void Myclass::foo(){}	// ==> using access modifiers like this is a syntax error. if you want to see if a member function's access modifier then you can use user define macros e.g.
+
+#define PUBLIC
+#define PRIVATE
+#define PROTECTED
+
+PUBLIC void Myclass::foo(){}	//	==> we can use this because, when a macro is declared without initialization, preprocessor reads it, but compiler does not, so from compiler's viewpoint
+										this line is exactly the same with
+											void Myclass::foo(){}
+###REMARK###
+	if an identifier used in a member function without declaration then it is searched in this order;
+		1-)   inside the scope it is used
+		2-)   enclosing scope
+		3-)	  enclosing scope
+		//    after all the enclosing scopes ended
+		n-)	  class scope							// ==> this is the only difference between searching in a member function and searching in a global function
+		n+1-) namespace scope
+	
+	IMPORTANT
+		name lookup happens only once, if the identifier is not found, compiler does not repeat the name lookup
+###REMARK###
+
+###REMARK###
+	member functions can not be re-declared.
+###REMARK###
+
+================================================================================================
+"this" keyword
+	"this" keyword can only be used inside non-static member functions
+	"this" is a pointer, that's why developers usually refer to "this" as "this pointer"
+
+	IMPORTANT
+		in other languages(like C#(uses this) or Python(uses self)) "this" correspondents are the object itself, but in C++ this is a pointer, *this is the object.
+
+chaining / fluent API
+e.g. using reference semantics
+class myclass{
+public:
+	myclass& f1(){
+		//code
+		return *this;
+	}
+
+	myclass& f2(){
+		//code
+		return *this;
+	}
+
+	myclass& f3(){
+		//code
+		return *this;
+	}
+};
+
+int main(){
+	myclass m;
+	m.f1().f2().f3();				// ==> this is called chaining. this works because f1 returns the myclass instance used to call it, and so do f2 and f3.
+}
+
+e.g. using pointer semantics
+
+class myclass{
+public:
+	myclass* f1(){
+		//code
+		return this;
+	}
+
+	myclass* f2(){
+		//code
+		return this;
+	}
+
+	myclass* f3(){
+		//code
+		return this;
+	}
+};
+
+int main(){
+	myclass m;
+	myclass* ptv_m = &m;
+	ptv_v->f1()->f2()->f3();		// ==> this is called chaining. this works because f1 returns the myclass instance used to call it, and so do f2 and f3.
+}
+
+================================================================================================
+const member functions
+
+	void foo(T* p);			// function is called mutator, parameter is called out parameter
+	void bar(const T* p);	// function is called accessor, parameter is called in parameter
+	same goes for references.	
+		special case;
+			if the function first takes the argument, uses it and then sets it, then it's argument is called in-out parameter.
+			same goes for references.
+
+	how to send the pointer to the instance of a class as "const" to a member function?
+		to do this we use the const keyword
+		e.g.
+			class Myclass{
+			public:
+				void set();
+				void get() const;	//since we are not gonna change any values in this function, we use const.this const makes the pointer of the instance const.
+			private:
+				int mx;
+			};
+			in this example set is mutator, and get is accessor.
+	non-static member functions can belong to two categories;
+		1-) const member functions
+		2-) non-const member functions
+
+###REMARK###
+	class Myclass{
+	public:
+		void foo(){
+
+		}
+		void func()const{
+			foo();			// this here is a syntax error because, func takes "this" as const, foo does not. and in C++ there is no implicit conversion from T* to const T*
+							// this line creates an error
+		}
+
+	};
+	so, const member functions can not call non-const member functions, but non-const member functions can call const member functions.
+	also,
+	a const instance of a class can only call const member functions. const instance calling a non-const member function is a syntax error.
+	also,
+	using "this" in a const member function to change a value of that instance is a syntax error.
+
+###REMARK###

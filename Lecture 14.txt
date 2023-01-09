@@ -1,0 +1,260 @@
+===========================================LECTURE 14===========================================
+================================================================================================
+
+static data members of classes
+
+	class Nec{
+		int a;			// ==> data member
+		
+		void foo();		// ==> member function
+
+		struct Data{	// ==> member type
+
+		};
+	};
+
+
+
+static data members of classes are the elements of the class, not the instance. they can be accessed via class instances or pointers to class instances but doing in that form is misleading.
+instead we use the scope resolution operator(::). it is misleading because it creates the impression that an operation is performed on the instance, but when it's about static members, we are not.
+this is why they are usually referred to as elements of the class, instead of the instance.
+e.g.
+	class myclass{
+	public:
+		static int x;
+	};
+
+	int main(){
+		myclass m1;
+		myclass* ptv_m1 = &m1;
+
+		m1.x;		// ==> viable but misleading.
+		m2->x;		// ==> viable but misleading.
+
+		// instead we use scope resolution operator(::)
+		myclass::x;
+		// but we can not assign a value to it. because the line "static int x;" in class declaration is a non-defining declaration.
+		return 0;
+	}
+how do we define static data members?
+declaration is in the class, but definition can be in the .cpp file of the class header or in the global scope.
+	e.g. for .cpp definition
+		//myclass.h
+		class myclass{
+		public:
+			static int x_;
+		};
+	
+	
+		//myclass.cpp
+		//#include "myclass.h"
+		int myclass:x_;
+		int myclass:x_ = 10;
+		int myclass:x_(10);
+		int myclass:x_{};
+		int myclass:x_{10};
+
+	e.g. for global scope definition
+		class myclass{
+		public:
+			static int x_;
+		};
+
+		int Myclass::x_;
+		int myclass:x_ = 10;
+		int myclass:x_(10);
+		int myclass:x_{};
+		int myclass:x_{10};
+
+	###REMARK###
+		- static keyword has to be used in declaration but not in definition.
+		- static data member can be of an incomplete type.
+			e.g.
+				class taha;					// ==> incomplete type
+
+				class yasin{
+					taha data1;				// ==> this is a syntax error. non-static data members must be complete types.
+					static taha data2;		// ==> this is not a syntax error because static data members can be of an incomplete type.
+				};
+	
+		- member of a class can not be itself.
+			e.g.
+				class myclass{
+					myclass x;					// ==> this is a syntax error because myclass is not complete.
+					static myclass x;			// ==> this is allowed, because static data members can be of an incomplete type.
+				};
+		- if the static data member is a const integral type then you can define it in the class definition.
+		(enum, char, signed char, unsigned char, long, long long, bool are also integral type.)
+			e.g.
+				class myclass{
+					static int x1 = 5;							// ==> invalid because it's not const
+					static const double x2 = 3.5;				// ==> invalid because it's not an integral type
+					static const int x3 = 5;					// ==> valid because it's both const and an integral type
+					static const long x4 = 7;					// ==> valid because it's both const and an integral type
+					static const long long x5 = 8;				// ==> valid because it's both const and an integral type
+					static const char x6 = 0;					// ==> valid because it's both const and an integral type
+					static const signed char x7 = 9;			// ==> valid because it's both const and an integral type
+					static const unsigned char x8 = 9;			// ==> valid because it's both const and an integral type
+				};
+		- static data members and global variables can be defined with "inline" keyword. (C++17)
+			inline variable:
+				inline int x = 5;		//	==> this guarantees in the link phase there will only be one x.
+				e.g.
+					//taha.cpp
+					inline int x = 6;
+
+					//yasin.cpp
+					inline int x = 6;
+
+					//cakmak.cpp
+					inline int x = 6;
+
+					there will only be one x. this is about ODR(one definition rule).
+			e.g.
+				//myclass.h
+				class myclass{
+				public:
+					inline static int x1 = 5;			// ==> if inline keyword is used, const and integral type rule is not necessary. so;
+					inline static double x2 = 5.3;		// ==> is valid now
+				};
+		- since static data members not actually part of the instances, do not try to initialize them with ctors.
+			e.g.
+				class myclass{
+					int mx, my;
+					static int ival;
+				public:
+					myclass(){}
+					myclasS(int x, int y) : mx{ x }, my{ y } {}								// ==> this is fine
+					myclasS(int x, int y, int z) : mx{ x }, my{ y }, ival{ z } {}			// ==> this is not
+					myclasS() : mx{ 10 }, my{ 20 }, ival{ 30 } {}							// ==> this is not
+				};
+
+	###REMARK###
+
+================================================================================================
+static member functions
+	- syntax;
+		class myclass{
+		public:
+			void foo();				// ==> non-static member function
+			static void bar();		// ==> static member function
+		};
+	- in the class scope but do not have a "this pointer". meaning they are called without an address of an instance.
+	- since they do not have a "this pointer", they can not be const functions.
+	- to call them, an instance is not required.
+		e.g.
+			class myclass{
+			public:
+				void foo();
+				static void bar();
+			};
+
+			int amin(){
+				Myclass::foo();		// ==> syntax error
+				Myclass::bar();		// ==> valid
+			}
+	- to summarize, they are not related to the instance itself but to the class. just like the static data members.
+	- since they are members of the class, they can access the private members of the class.
+	- have access modifiers.
+	- they can be defined as inline functions in the class.
+	- the trick in PUBLIC and PRIVATE macros to determine if a function's access modifier, we can also use it for static.
+	- since they do not have a this pointer, they can not use non-static data members of the class as unqualified name. but static member functions can use unqualified names to access
+	the static data members of the class.
+	- just like static data members, they can be accessed using dot and arrow operators, but just like static data members, they should not.
+	- pointers to static member functions are defined the same way as pointers to global functions.
+	
+	###REMARK###
+		class myclass{
+		public:
+			static int foo(){
+				return 777;
+			}
+			static int x;
+		};
+
+		int foo(){
+			return 5;
+		}
+
+		int myclass::x = foo();				// ==> this line will call the foo in class  scope
+		myclass::x = ::foo();				// ==> this line will call the foo in global scope
+
+		int main(){
+			cout << "x = " << x << '\n';
+		}
+
+		will have the output
+			
+			x = 777
+
+		because name in the expression that's initializing the static data member will be searched in class scope first.
+	###REMARK###
+================================================================================================
+named constructor idiom
+there are scenarios where we want to disable the object instantiation. to do that we declare ctors as private members of the class. but to be able to use them under certain circumstances we define
+a public member function to call them. this is called named constructor idiom. it is a function that calls the ctors but is not categorized as special member function.
+	it is one of the typical scenarios that static member functions are used.
+
+================================================================================================
+global static functions
+
+
+
+================================================================================================
+friend declarations
+private members of the class can not be access except within the class members. to give a global function the privilege to access the private members of the class, we use the "friend" keyword.
+friend keyword works either all in or none, meaning we can not choose which members to give access to. it grants access to all of the private members.
+friendship can also be granted to a class.
+
+friend declaration can be used to
+1-) grant private member access to a function in a namespace
+2-) grant private member access to a member function of a class(different class than the we grant access to)
+3-) grant private member access to every function of a class(different class than the we grant access to)
+
+
+e.g.
+	class myclass{
+		void foo();
+		int mx;
+	public:
+		friend void func(Myclass);
+	};
+
+	void func(Myclass pm){
+		Myclass m;
+		pm.foo();			// ==> without the friend declaration in the class, this expression would be an access control error.
+		pm.mx;				// ==> without the friend declaration in the class, this expression would be an access control error.
+		m.foo();			// ==> without the friend declaration in the class, this expression would be an access control error.
+		m.mx;				// ==> without the friend declaration in the class, this expression would be an access control error.
+	}
+
+	###REMARK###
+		friend functions can be defined in the class, BUT IT STILL IS A GLOBAL FUNCTION. this kind of friend functions are called hidden friend. and it is frequently used.
+		e.g.
+			class myclass{
+				void foo();
+				int mx;
+			public:
+				friend void func(Myclass x){			// ==> this function is still a global function, so it can be called without a class instance.
+					return x.mx;
+				}
+			};
+	###REMARK###
+e.g.
+	class A;
+
+	class B{
+		friend class A;			// ==> whit this expression class B grants friendship to class A.
+	};
+
+
+
+	- friend declaration can be done in public and private sections of the class, and it would not have any difference.
+	- the downside of friend declaration is that when a change made in the private section of a class, friend functions of that class MUST be revisited.
+
+	some rules about friend declaration
+		1-) class a granting friendship to class b, does not imply that class b grants a friendship to class a.
+		2-) friend of a friend is not a friend. meaning friendship is not transitive. meaning, class a granting friendship to class b, and class b granting friendship to class c does not imply
+		that class a grants friendship to class c.
+
+================================================================================================
