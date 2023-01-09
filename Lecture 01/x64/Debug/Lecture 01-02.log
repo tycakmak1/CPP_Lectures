@@ -1,0 +1,5 @@
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(517,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (CPP_Lectures.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  Lecture 01-02.cpp
+F:\CPP_Lectures\Lecture 01\Lecture 01-02.cpp(45,6): warning C4101: 'a1': unreferenced local variable
+F:\CPP_Lectures\Lecture 01\Lecture 01-02.cpp(23): warning C4172: returning address of local variable or temporary: temp
+  Lecture 01-02.vcxproj -> F:\CPP_Lectures\x64\Debug\Lecture 01-02.exe
