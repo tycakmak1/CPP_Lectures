@@ -1,0 +1,287 @@
+===========================================LECTURE 15===========================================
+================================================================================================
+operator overloading
+
+	compile time mechanism. has nothing to do with runtime.
+
+there are two types of operator function;
+	1-) global operator function
+	2-) member operator function
+		if they are member functions, they have to be non-static.
+
+	general rules of operator overloading
+		
+		- this mechanism is only viable to class types. it also viable for enum type but that's an exception to this rule.
+		- must be one of the existing operators in the C++. in other words, a non-existing operator can not be overloaded.
+		- there are some operators that can not be overloaded
+			e.g.
+				- dot operator
+				- sizeof operator
+				- ternary operator
+				- scope resolution operator
+				- .* operator
+				- typeid operator
+		- there are certain rules that has to be followed for naming operator functions. keyword operator followed by the token of the operator.
+			e.g.
+				operator+
+				operator==
+				operator++
+				operator()
+				operator&
+				operator=		// ==> this is the assignment operator, it's also a special member function.
+		- all operator functions can be called by their names. in some cases it is necessary to do so.
+			e.g.
+				int x = 5;
+				cout << x;
+				cout.operator<<(x);
+		- for some operator we can only create member operator function
+			e.g.
+				[]
+				->
+				type cast
+				()
+				=
+		- operator functions can not take default arguments, there is only one exception to this rule, which is ().
+		- arity of operators must be followed. meaning, if an operator is binary, then it's overload also must be binary.
+			e.g.
+				a < b
+				operator<(T& a, T& b);			// ==> valid
+				operator<(T& a);				// ==> invalid
+		- if an operator overload is a member operator overload, then the function will always be called for the left hand side operand. rhs operand will be passed as an argument to the function.
+		###REMARK##
+			there are four operator tokens such that they are two different operators.
+				e.g.
+					+ operator
+						e.g.
+							a + b		==> addition
+							+a			==> sign operator
+							so + operator can be overloaded both with two parameters and one.
+					- operator
+						e.g.
+							a - b		==> subtraction
+							-b			==> sign operator
+							so - operator can be overloaded both with two parameters and one.
+					& operator
+						e.g.
+							a & b		==> bitwise and
+							&a			==> address operator
+							so & operator can be overloaded both with two parameters and one.
+					* operator
+						e.g.
+							a * b		==> multiplication
+							*a			==> dereferencing
+							so * operator can be overloaded both with two parameters and one.
+		###REMARK##
+		- function overloading and operator overloading are different, but related to each other.
+		- operator precedence or operator associativity can no be changed.
+		
+		e.g.
+			int main(){
+				using namespace std;
+				int x = 10;
+				double y = 4.5;
+
+				cout << x << " " << y << endl;
+				operator<<(cout,operator<<(x), " ").operator<<(y).operator(endl);
+			}
+		###REMARK###
+
+			value categories overloaded operator functions must be the same with the original value category.
+				e.g.
+					++x must have the T& return type, because ++x has the L value category.
+					x++ must have the T  return type, because x++ has the PR value category.
+
+					[] must be L value, since it yields an instance.
+
+					assignment operator must have T& with the same logic.
+					sign operators must have T.
+
+		###REMARK###
+		
+		###REMARK###
+			
+			const correctness is important in operator overloading.
+				e.g.
+					
+					class myclass{
+					public:
+						int x_, y_;
+						myclass operator+(const myclass& b)const{				// ==> since the addition does not change the value of *this, it must be const.
+							return {x_ + b.x_, y_ + b.y_};
+						}
+						myclass& operator=(const myclass& b){					// ==> but assignment operator will change the value of *this, so it can not be const. since b's are not gonna change
+							x_ = b.x_;											// in any either of the scenarios, we define them as const to prevent it from changing and defining them as references
+							y_ = b.y_;											// prevents the unnecessary copying.
+							return *this;
+						}
+					};
+		###REMARK###
+
+	then why do we have global operator functions?
+		1-) because, we can overload the user defined types but not the existing types
+				e.g.
+					class T;
+
+					T + 5;			// ==> can be achieved by member operator overloading
+					5 + T;			// ==> can not be achieved by member operator functions. to do this we use global operator functions, and we call global operator functions by their names.
+		2-) for scenarios such that we have to use two different class types as operands.
+			e.g.
+				class T;
+				T x;
+				cout << x;			// ==> cout and x have different class types.
+
+
+	some advices on how to decide whether an operator function should be member or global.
+		1-) symmetric binary operators should be global.
+			e.g.
+				a < b		and		b < a		// ==> "<" is symmetric binary operator. operation performed is the same for both styles.
+###WARNING###
+	do not define both a member and a global operator function exactly the same. this will cause ambiguity error.
+		e.g.
+			class myclass{
+			public:
+				myclass operator+(int)const;
+			};
+
+			myclass operator+(const myclass&, int);
+			
+			this will cause ambiguity error.
+###WARNING###
+		2-) if the operation changes the class instance, as a general rule it should be a member.
+		3-) unary and asymmetric binary operators, should be members. again, as a general rule.
+
+###REMARK###
+	existence of two operators in a compound operator does not imply the existence of the compound operator itself.
+###REMARK###
+
+###REMARK###
+		if you are overloading << and >> for input/output for a class, include iosfwd instead of iostream if you are defining the operators in the cpp file. if you are defining them inline
+		then you have to use iostream. the difference between iosfwd and iostream is iosfwd contains the forward declarations of iostream. so it is lighter.
+			e.g.
+				
+				// myclass.h
+				#include <iosfwd>
+				class myclass{
+				public:
+					friend std::ostream& operator<<(std::ostream&, const myclass&);
+				};
+
+				// myclass.cpp
+				#include <iostream>
+				std::ostream& operator<<(std::ostream& out, const myclass& m){
+					//.. code goes here
+					return out;
+				}
+
+				but for inline;
+
+				// myclass.h
+				#include <iostream>
+				class myclass{
+				public:
+					friend std::ostream& operator<<(std::ostream& out, const myclass& m){
+						//.. code goes here
+						return out;
+					}
+				};
+
+				or
+
+				// myclass.h
+				#include <iostream>
+				class myclass{
+				public:
+					friend inline std::ostream& operator<<(std::ostream& out, const myclass& m);
+				};
+
+				std::ostream& operator<<(std::ostream& out, const myclass& m){
+					//.. code goes here
+					return out;
+				}
+
+
+
+###REMARK###
+
+	when overloading comparing operators, the most common practice is defining == and < operators, and using them in other overloads.
+		e.g.
+			bool operator==(const T& t1, const T& t2){
+				return t1.val == t2.val;
+			}
+			bool operator<(const T& t1, const T& t2){
+				return t1.val < t2.val;
+			}
+
+			for other operators we use these two again;
+			bool operator!=(const T& t1, const T& t2){
+				return !(t1 == t2);
+			}
+
+			bool operator>(const T& t1, const T& t2){
+				return t2 < t1;
+			}
+	###REMARK###
+		with C++20, if you overload the == operator, compiler will default the !=. meaning you will not have to overload != operator.
+	###REMARK###
+		
+		advices on operator overloading(cont.)
+
+		4-) assignment operators should be member operators, but arithmetic operators should be global operators.
+		5-) when overloading += and + operators, first overload += and then call += inside the + operator.
+			e.g.
+				
+				class T{
+				public:
+					T& operator+=(const T& t){
+						val += t.val;
+						return *this;
+					}
+				};
+
+				inline T operator+(const T& lhs, const T& rhs){
+					return T{lhs} += rhs;
+				}
+		6-) ++ and --. they have the same syntax, how to differentiate them in operator function?
+			e.g.
+				class T{
+				public:
+					T& operator++()&{				// ==> this is prefix
+						++val;
+						return *this;
+					}
+					T operator++(int){				// ==> this is postfix
+						T retun_val{*this};
+						++*this;
+						return return_val;
+					}
+				}
+[]		index operator function
+* ->	dereference and arrow operator functions
+()		function call operator funciton
+		type casting operator functions
+
+
+array-like classes
+	std::vector
+	std::deque
+	std::string
+	std::array
+	std::bitset
+	std::map
+
+pointer-like classes
+	std::iterator
+		e.g.
+			std::vector<std::string> svec = { "john", "jack", "jane" };
+			auto iter1 = svec.begin();
+			std::vector<std::string>::iterator iter2 = svec.begin() + 1;
+			cout << *iter1 << ' ' << *iter2 << ' ' << iter2->size();								// ==> this line will print "john jack 4"
+
+			iter1 and iter2 belongs to "iterator" class. it is a pointer-like class
+
+	smart pointers
+		they act like iterators, both have * -> and ++ operators overloaded.
+		iterators are used to grant access to the elements of the data.
+		smart pointers are used to point to dynamic instances.
+
+================================================================================================
